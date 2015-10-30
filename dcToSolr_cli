@@ -9,7 +9,7 @@ while ($line = fgets(STDIN, 8192)) {
     $input .= $line;
 }
 
-
+solr apsolr http apisolrsolr
 $input = str_replace("\n", "", $input);
 
 $conf = parse_ini_file($argv[1], true);
@@ -89,8 +89,6 @@ foreach ($mappings as $field => $def) {
                     foreach($xml->xpath($rest) as $val) {
                         if (preg_match($cond, (string)$val)) {
                             $solrdoc[$field][] = $prefix . (string)$val;
-                        } else {
-                            $solrdoc[$field][] = (string)$val;
                         }
                     }
                 }
