@@ -1,0 +1,119 @@
+#!/usr/bin/env php
+
+<?php
+
+$input = "";
+$exit = false;
+
+while ($line = fgets(STDIN, 8192)) {
+    $input .= $line;
+}
+
+
+$input = str_replace("\n", "", $input);
+
+$conf = parse_ini_file($argv[1], true);
+if (!isset($conf['url'])) {
+    error_log("required parameter url not set in config file\n");
+    $exit = true;
+} else {
+    $url = $conf['url'];
+}
+
+if (!isset($conf['mappings'])) {
+    error_log("No field mappings defined\n");
+    $exit = true;
+} else {
+    $mappings = $conf['mappings'];
+}
+
+if($exit) exit(1);
+
+if(! $xml = simplexml_load_string($input)) {
+    error_log("Input must be XML");
+    exit(1);
+}
+
+foreach($xml->getDocNamespaces() as $strPrefix => $strNamespace) {
+    if(strlen($strPrefix)==0) {
+        $strPrefix="default"; //Assign an arbitrary namespace prefix.
+    }
+    $xml->registerXPathNamespace($strPrefix,$strNamespace);
+}
+
+$solrdoc = array();
+foreach ($mappings as $field => $def) {
+    $val = array();
+    $mode = "xpath";
+    if (!is_array($def)) {
+        $val[] = $def;
+    } else {
+        $val = $def;
+    }
+    foreach ($val as $def) {
+        if (preg_match('/\[([^\]]+)\](.*)/', $def, $match)) {
+            $mode = $match[1];
+            $rest = $match[2];
+        }
+        switch ($mode) {
+            case "s":
+                $solrdoc[$field][] = $rest;       
+                break;
+            case "fullrecord":
+                $solrdoc[$field][] = $input;
+                break;
+            case "allfields":
+                $solrdoc[$field][] = strip_tags($input);
+                break;
+            case "map":
+                if (preg_match('/\[([^\]]+)\](.*)/', $rest, $match)) {
+                    $translation_file = $match[1];
+                    $rest = $match[2];
+                    $translation_map = parse_ini_file($translation_file,true);
+                    foreach($xml->xpath($rest) as $val) {
+                        if (array_key_exists((string)$val, $translation_map['mappings'])) {
+                           $solrdoc[$field][] = $translation_map['mappings'][(string)$val];
+                        } elseif (array_key_exists("default", $translation_map)) {
+                           $solrdoc[$field][] = $translation_map['default'];
+                        } else {
+                           $solrdoc[$field][] = (string)$val;
+                        }
+                    }
+                }
+                break;
+            case "condprefix":
+                if (preg_match('/\[([^\]]+)\]\[([^\]]+)\](.*)/', $rest, $match)) {
+                    $cond = $match[1];
+                    $prefix = $match[2];
+                    $rest = $match[3];
+                    foreach($xml->xpath($rest) as $val) {
+                        if (preg_match($cond, (string)$val)) {
+                            $solrdoc[$field][] = $prefix . (string)$val;
+                        } else {
+                            $solrdoc[$field][] = (string)$val;
+                        }
+                    }
+                }
+                break;
+            case "xpath":
+            default:
+                foreach($xml->xpath($def) as $val) {
+                    $solrdoc[$field][] = (string)$val;
+                }
+        }
+    }
+}
+
+$http = curl_init();
+curl_setopt($http, CURLOPT_URL, $url);
+curl_setopt($http, CURLOPT_POST, true);
+curl_setopt($http, CURLOPT_POSTFIELDS, json_encode(array($solrdoc)));
+curl_setopt($http, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
+curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($http);
+curl_close($http);
+
+error_log("Posted " . $solrdoc['id'][0]);
+
+
+?>

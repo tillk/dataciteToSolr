@@ -1,0 +1,32 @@
+url = [URL of Solr Update Handler]
+
+; Map XPaths to Solr index fields:
+; solrfield = "xpath"
+; to assign static values to a field:
+; solrfield = "[s]value"
+; to assign full input string to a field:
+; solrfield = "[fullrecord]"
+; to strip all XML tags from input and assign string content to a field:
+; solrfield = "[allfields]"
+; to run xpath results through a translation map:
+; solrfield = "[map][path to map file]xpath"
+
+[mappings]
+recordtype = "[s]oai_dc"
+collection = "[s]datacite"
+collection_details = "[s]GBV_datacite"
+fullrecord = "[fullrecord]"
+allfields = "[allfields]"
+id = "//default:identifier"
+title = "//dc:title"
+title_full = "//dc:title"
+title_short = "//dc:title"
+author2 = "//dc:creator"
+publishDate = "//dc:date"
+abstract = "//dc:description"
+publisher = "//dc:publisher"
+topic = "//dc:subject"
+format = "//dc:type"
+language = "[map][/home/till/dcToSolr/ISO639_map.properties]//dc:language"
+url = "[condprefix]:/^doi/:[http://doi.org/]//dc:identifier"
+url = "[condprefix]:/^urn/:[https://nbn-resolving.org/resolver?identifier=]"
