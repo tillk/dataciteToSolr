@@ -9,7 +9,6 @@ while ($line = fgets(STDIN, 8192)) {
     $input .= $line;
 }
 
-solr apsolr http apisolrsolr
 $input = str_replace("\n", "", $input);
 
 $conf = parse_ini_file($argv[1], true);
