@@ -1,4 +1,4 @@
-url = [URL of Solr Update Handler]
+url = 
 
 ; Map XPaths to Solr index fields:
 ; solrfield = "xpath"
@@ -28,5 +28,5 @@ publisher = "//dc:publisher"
 topic = "//dc:subject"
 format = "//dc:type"
 language = "[map][/home/till/dcToSolr/ISO639_map.properties]//dc:language"
-url = "[condprefix]:/^doi/:[http://doi.org/]//dc:identifier"
-url = "[condprefix]:/^urn/:[https://nbn-resolving.org/resolver?identifier=]"
+url[] = "[condprefix]:/^doi/:[http://doi.org/]//dc:identifier"
+url[] = "[condprefix]:/^urn/:[https://nbn-resolving.org/resolver?identifier=]//dc:identifier"

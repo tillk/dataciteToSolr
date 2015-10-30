@@ -82,7 +82,7 @@ foreach ($mappings as $field => $def) {
                 }
                 break;
             case "condprefix":
-                if (preg_match('/\[([^\]]+)\]\[([^\]]+)\](.*)/', $rest, $match)) {
+                if (preg_match('/:(\/.+\/):\[([^\]]+)\](.*)/', $rest, $match)) {
                     $cond = $match[1];
                     $prefix = $match[2];
                     $rest = $match[3];
@@ -104,6 +104,9 @@ foreach ($mappings as $field => $def) {
     }
 }
 
+print_r($solrdoc);
+
+/*
 $http = curl_init();
 curl_setopt($http, CURLOPT_URL, $url);
 curl_setopt($http, CURLOPT_POST, true);
@@ -112,7 +115,7 @@ curl_setopt($http, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
 curl_setopt($http, CURLOPT_RETURNTRANSFER, true);
 $result = curl_exec($http);
 curl_close($http);
-
+*/
 error_log("Posted " . $solrdoc['id'][0]);
 
 
